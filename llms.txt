@@ -1,0 +1,8 @@
+delivery-guard
+========================
+可插拔模块（lgd-skeleton/1.0）。医疗 AI / 医疗器械交付物门禁：17 道门禁 + 双 SHA-256 指纹权属台账（provenance ledger）。
+入口: scripts/delivery_guard.py
+元数据: module.json
+总入口: medical-ai-toolkit
+关联: ai-model-passport · ai-a3-laws · samd-ra-toolkit
+许可: Apache-2.0 · 贡献者: @stevenzhao07 (MedXpert)

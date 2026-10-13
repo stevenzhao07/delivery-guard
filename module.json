@@ -1,0 +1,46 @@
+{
+  "id": "delivery-guard",
+  "title": "医疗 AI / 医疗器械交付物门禁（17 道门禁 + 双 SHA-256 指纹权属台账）",
+  "description": "MedXpert 把AI 交付治理理念工程化落地的可插拔模块：交付前按 17 道门禁校验，并计算双 SHA-256 指纹写入权属台账（provenance ledger），形成可审计的在先发表证据。",
+  "triggers": {
+    "keywords": [
+      "delivery",
+      "gate",
+      "门禁",
+      "provenance",
+      "sha256",
+      "ledger",
+      "release",
+      "发布前校验",
+      "compliance-check",
+      "权属台账"
+    ],
+    "file_patterns": [
+      "delivery_guard.py"
+    ],
+    "intents": [
+      "门禁",
+      "交付校验",
+      "权属台账",
+      "指纹存证"
+    ]
+  },
+  "provides": [
+    "delivery-guard",
+    "gate",
+    "provenance",
+    "dual-sha"
+  ],
+  "skills": [],
+  "needs_backends": [],
+  "license": "Apache-2.0",
+  "upstream": null,
+  "cost": "low",
+  "lazy": true,
+  "nested": true,
+  "entry": "scripts/delivery_guard.py",
+  "deps": [],
+  "generated_by": "lgd-skeleton/1.0 (manual port from rea scaffold)",
+  "idea": "医疗 AI 交付门禁：17 道门禁 + 双 SHA-256 指纹权属台账",
+  "extension_note": "新增能力只需在主体代码注册表加一行，无需改主流程。"
+}

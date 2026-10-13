@@ -1,0 +1,4 @@
+# 扩展点（plugins/）
+# 新增门禁：在 scripts/delivery_guard.py 的 GATES 注册表加一行 (name, fn) 即可，无需改主流程。
+# 新增指纹算法：扩展 commit_ledger 的 record 字段。
+# 新增上游台账后端：在此放适配器，被 main 按需加载（lazy）。
