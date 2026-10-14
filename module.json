@@ -1,5 +1,7 @@
 {
   "id": "delivery-guard",
+  "stage": "G",
+  "stage_name": "AI 治理层",
   "title": "医疗 AI / 医疗器械交付物门禁（17 道门禁 + 双 SHA-256 指纹权属台账）",
   "description": "MedXpert 把AI 交付治理理念工程化落地的可插拔模块：交付前按 17 道门禁校验，并计算双 SHA-256 指纹写入权属台账（provenance ledger），形成可审计的在先发表证据。",
   "triggers": {
