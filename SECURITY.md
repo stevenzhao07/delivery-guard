@@ -1,41 +1,19 @@
-# Security & Regulatory-Accuracy Policy — delivery-guard
+# Security Policy / 安全政策
 
-## Scope clarification
+## Supported Versions / 受支持版本
+Only the latest release is actively supported for security fixes.
+仅最新版本提供安全修复支持。
 
-`delivery-guard` is an **open reference implementation and decision-support tool**.
-It is **not a medical device**, **not a certified regulatory submission**, and **not clinical advice**.
-Security here means: (a) the integrity of the code, and (b) the accuracy of regulatory references.
+## Reporting a Vulnerability / 报告漏洞
+Please **do not** open a public issue for security vulnerabilities.
+安全漏洞请勿公开发布 issue。
 
-## Reporting a vulnerability
+- Report privately: create a private advisory via the repository's
+  Security > Advisories page, or contact the maintainer directly.
+  请通过仓库 Security > Advisories 页创建私有通报，或直接联系维护者。
+- Expected response: acknowledgement within 5 business days / 5 个工作日内确认。
 
-1. **Do not open a public Issue.**
-2. Email the maintainer via the contact in the repository README, or use GitHub's private security advisory.
-3. Include: affected version/commit, reproduction steps, impact, suggested fix.
-
-We aim to acknowledge within **7 days** and provide a remediation plan within **30 days** for confirmed issues.
-
-## Reporting regulatory-accuracy concerns
-
-If a regulatory constant, citation, or date appears wrong or outdated:
-
-1. Open an Issue with label `regulatory-accuracy`.
-2. Provide: the exact claim, the official source + version + URL, and the date you verified it.
-3. We correct the value and stamp a new "verified on" date. Until then the field stays marked `⚠️ 待核实`.
-
-## Verification tiers (do not overstate)
-
-| Tier | Meaning | What it does NOT mean |
-|---|---|---|
-| 🟢 CI | GitHub Actions passed | not expert-reviewed, not clinically validated |
-| 🟡 Self-test | `--selftest` passes (assertions + negative control) | not third-party audited |
-| 🔵 Expert review | a domain expert signed off | currently **pending across the toolkit** |
-| ⚪ Official source verification | constant traced to a dated official source | not a guarantee the source is current |
-
-## What we will NOT do
-
-- We will not silently change medical-risk calculations or regulatory judgments for cosmetic reasons.
-- We will not present a demo run as a correctness test, nor unaudited code as expert-reviewed.
-
-## Supported versions
-
-Only the latest `main` is supported for security fixes.
+## Security Practices / 安全实践
+- Dependabot: weekly dependency updates / 每周依赖更新。
+- CodeQL SAST: continuous static analysis / 持续静态分析。
+- OpenSSF Scorecard: automated supply-chain scoring / 自动化供应链评分。
