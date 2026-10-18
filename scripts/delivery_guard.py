@@ -328,6 +328,64 @@ def gate_provenance_dual_fingerprint(text, raw, path):
     return True, "可计算双 SHA-256 指纹（字节+内容）"
 
 
+# ---------------------------------------------------------------------------
+# 第 18 道门禁：Clef 语义门禁（可选，需 Cloudflare 凭证；离线降级 N/A 通过）
+# 与 1-17 道确定性静态门禁互补：静态门禁查“硬伤”，Clef 决策模型查“语义风险”
+# （营销/夸大措辞、未经授权的标准自称、误导性声明）。保持零依赖（标准库 urllib）。
+# ---------------------------------------------------------------------------
+_CLEF_QUESTIONS = {
+    "delivery_risk": {
+        "type": "choice",
+        "instructions": "从对外交付合规视角，对该交付物文本做风险分级。",
+        "criteria": {
+            "A": "合规交付物：披露齐全、无营销措辞、不自称制定标准、无误导性声明",
+            "B": "低风险：个别措辞欠妥，但不构成误导",
+            "C": "明显风险：含营销/夸大措辞、或未经授权的标准自称、或误导性安全声称",
+            "D": "高危：含未披露利益冲突、伪造权威、严重误导公众",
+        },
+    },
+}
+
+
+def _clef_classify(text: str, account_id: str, token: str):
+    """最小 Clef choice 调用（标准库 urllib，不引入第三方依赖）。
+    返回 (grade, probabilities) 或抛异常；失败由调用方降级。"""
+    import urllib.request as ur
+    body = json.dumps({"model": "clef", "state": text[:8000],
+                       "questions": _CLEF_QUESTIONS}).encode()
+    url = (f"https://api.cloudflare.com/client/v4/accounts/{account_id}"
+           "/ai/run/@cf/cloudflare/clef")
+    req = ur.Request(url, data=body, headers={
+        "Authorization": f"Bearer {token}", "Content-Type": "application/json"})
+    with ur.urlopen(req, timeout=60) as r:
+        resp = json.loads(r.read().decode())
+    answers = (resp.get("result") or {}).get("answers") or {}
+    raw = answers.get("delivery_risk") or {}
+    return raw.get("choice"), raw.get("probabilities") or {}
+
+
+def gate_clef_semantic_risk(text, raw, path):
+    """Clef 语义门禁（第 18 道）：A/B 通过；C/D 阻断；无凭证或调用失败 → N/A 通过（注明）。"""
+    import os
+    account_id = os.environ.get("CLOUDFLARE_ACCOUNT_ID", "")
+    token = os.environ.get("CLOUDFLARE_AUTH_TOKEN", "")
+    if not (account_id and token):
+        return True, "N/A：未配置 Cloudflare 凭证（可选门禁，离线通过）"
+    if text is None:
+        return True, "N/A：二进制产物，语义门禁不适用"
+    try:
+        grade, probs = _clef_classify(text, account_id, token)
+    except Exception as exc:
+        return True, f"N/A：Clef 调用失败（{type(exc).__name__}），降级通过"
+    if not grade:
+        return True, "N/A：Clef 未返回有效分级，降级通过"
+    passed = grade in ("A", "B")
+    p = probs.get(grade, 0)
+    detail = f"Clef 语义分级 {grade}（P={p:.2f}）" + (
+        "，语义合规" if passed else "，营销/自称标准/误导风险 → 阻断")
+    return passed, detail
+
+
 # 注册表：门禁按编号顺序执行
 GATES: list[tuple[str, Callable]] = [
     ("artifact_exists_nonempty", gate_exists_nonempty),
@@ -347,6 +405,7 @@ GATES: list[tuple[str, Callable]] = [
     ("tests_present", gate_has_tests),
     ("no_todo_leak", gate_no_todo_leak),
     ("provenance_dual_fingerprint", gate_provenance_dual_fingerprint),
+    ("clef_semantic_risk", gate_clef_semantic_risk),
 ]
 
 
