@@ -1,5 +1,7 @@
 # delivery-guard
 
+> **门户 / Portal:** [LGD Hub · 生态超市入口](https://zhaoxinghua09-cell.github.io/lgd-hub/) ｜ LGD 生态（Lifecycle Governance Doctrine）
+
 > **Contributed by [@stevenzhao07](https://github.com/stevenzhao07) · Independent researcher · Pure technical input, no commercial promotion.**
 
 医疗 AI / 医疗器械交付物的「门禁（gate）」开源工具。在把任何交付物（模型卡、数据集卡、代码、文档、合规模板）对外发布或交付前，按 **18 道门禁**逐条校验，并对其计算**双 SHA-256 指纹**写入**权属台账（provenance ledger）**，形成可审计的在先发表证据。
