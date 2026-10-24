@@ -1,6 +1,6 @@
 # delivery-guard
 
-> **Contributed by [@stevenzhao07](https://github.com/stevenzhao07) · Affiliation: MedXpert (medical-device RA & regulatory consultancy) · Pure technical input, no commercial promotion.**
+> **Contributed by [@stevenzhao07](https://github.com/stevenzhao07) · Independent researcher · Pure technical input, no commercial promotion.**
 
 医疗 AI / 医疗器械交付物的「门禁（gate）」开源工具。在把任何交付物（模型卡、数据集卡、代码、文档、合规模板）对外发布或交付前，按 **18 道门禁**逐条校验，并对其计算**双 SHA-256 指纹**写入**权属台账（provenance ledger）**，形成可审计的在先发表证据。
 
@@ -47,6 +47,8 @@ python scripts/delivery_guard.py <artifact>
 ```
 
 ## 免责声明
+
+> 品牌状态限定：**MedXpert**（未申请实体注册、未申请商标注册，仅作来源标识）。本仓库由个人以独立研究者（Independent researcher）身份维护，不代表任何机构。
 
 本工具仅提供结构化模板与计算能力，**不构成法规建议、合规结论或专业意见**。医疗 AI / 医疗器械相关的落地决策，须由合资格人员依据目标辖区（NMPA / FDA / EU MDR / PMDA）最新法规文本作出；条款与限值以官方发布文本为准。使用本工具产生的一切后果由使用者自行承担。
 
