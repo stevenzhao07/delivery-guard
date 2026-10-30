@@ -453,8 +453,10 @@ def _demo() -> int:
         results, _, _ = run_gates(path)
         for r in results:
             print(f"  [{'PASS' if r.passed else 'FAIL'}] {r.name}: {r.detail}")
-        print(f"\n[demo] 演示门禁: {sum(r.passed for r in results)}/{len(results)} 通过"
-              f"（演示样本干净，不写入台账）")
+        _npass = sum(r.passed for r in results)
+        # S1（2026-10-30）：摘要行按结果生成——有失败时不得打印「干净」。
+        print(f"\n[demo] 演示门禁: {_npass}/{len(results)} 通过"
+              f"（{'演示样本干净，不写入台账' if _npass == len(results) else '演示样本存在未过门禁，见上方 FAIL 行'}）")
         # S1（2026-10-30）：demo 与主路径同一退出码契约——有门禁失败必须非零，
         # 否则把 --demo 放进 CI 的人会拿到一个永远绿的假门（SF-011 形态）。
         return 0 if all(r.passed for r in results) else 1
@@ -588,6 +590,30 @@ def _selftest() -> int:
             _fail.append(f"demo 契约失败：演示样本（含 LICENSE 副本）应全过返回 0，实际 rc={_p.returncode}")
     finally:
         _shutil.rmtree(_tmp, ignore_errors=True)
+    # 负对照（S1 变异防护，2026-10-30 红队席提出）：此前 4/4 自测对 S1 零覆盖力——
+    # 把 _demo 的退出码契约改回 return 0，自测仍全绿。故注入必败门后进程内调用
+    # _demo()，断言 rc==1：该变异一旦回归，此用例必红。
+    _n += 1
+    import io as _io
+    from contextlib import redirect_stdout as _rso
+    _orig_run_gates = run_gates
+
+    def _failing_run_gates(_p):
+        _rs, _log, _ctx = _orig_run_gates(_p)
+        _rs = list(_rs) + [GateResult(gate_id=99, name="selftest-injected-fail",
+                                      passed=False, detail="自测注入的必败门（S1 变异防护）")]
+        return _rs, _log, _ctx
+
+    globals()["run_gates"] = _failing_run_gates
+    try:
+        _buf = _io.StringIO()
+        with _rso(_buf):
+            _rc = _demo()
+    finally:
+        globals()["run_gates"] = _orig_run_gates
+    if _rc != 1:
+        _fail.append(f"S1 变异防护失败：注入必败门后 _demo() 返回 rc={_rc}，期望 1"
+                     f"（若 _demo 退出码契约被改回恒 0，此用例必须红）")
     for _x in _xfail:
         print("[selftest][xfail] " + _x)
     if _fail:
