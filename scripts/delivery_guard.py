@@ -433,6 +433,7 @@ def commit_ledger(ledger_path: Path, record: dict) -> None:
 
 
 def _demo() -> int:
+    import shutil
     import tempfile
     sample = (
         "# 演示交付物：骨科 AI 分诊说明（v0.1.0）\n\n"
@@ -440,9 +441,14 @@ def _demo() -> int:
         "人类监督：高风险决策须临床医生复核（human-in-the-loop）。\n"
         "贡献者关联：MedXpert (@stevenzhao07)。\n"
     )
-    with tempfile.NamedTemporaryFile("w", suffix=".md", delete=False, encoding="utf-8") as f:
-        f.write(sample)
-        path = Path(f.name)
+    # 样本须模拟「交付物所在的那个仓」：临时目录 + 交付物 + 本仓真实 LICENSE 副本。
+    # 修复前样本落在 %TEMP% 根部，同级天然无 LICENSE，license_present 门如实报缺（17/18 成因）。
+    tmpdir = Path(tempfile.mkdtemp(prefix="delivery_guard_demo_"))
+    path = tmpdir / "demo_artifact.md"
+    path.write_text(sample, encoding="utf-8")
+    repo_license = Path(__file__).resolve().parent.parent / "LICENSE"
+    if repo_license.is_file():
+        shutil.copyfile(repo_license, tmpdir / "LICENSE")  # 用本仓真实 LICENSE，不用占位串
     try:
         results, _, _ = run_gates(path)
         for r in results:
@@ -450,7 +456,7 @@ def _demo() -> int:
         print(f"\n[demo] 演示门禁: {sum(r.passed for r in results)}/{len(results)} 通过"
               f"（演示样本干净，不写入台账）")
     finally:
-        path.unlink()
+        shutil.rmtree(tmpdir, ignore_errors=True)
     return 0
 
 
