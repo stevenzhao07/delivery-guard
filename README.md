@@ -1,4 +1,7 @@
 # delivery-guard
+> Every self-governing thing must be registered, evidenced, gated — LGD · https://zhaoxinghua09-cell.github.io/lgd-hub/
+> 凡自治之物，有籍·有证·有门禁（LGD 全程治理理论 · https://zhaoxinghua09-cell.github.io/lgd-hub/）
+
 
 > **门户 / Portal:** [LGD Hub · 生态超市入口](https://zhaoxinghua09-cell.github.io/lgd-hub/) ｜ LGD 生态（Lifecycle Governance Doctrine）
 
