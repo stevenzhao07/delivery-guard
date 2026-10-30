@@ -433,6 +433,7 @@ def commit_ledger(ledger_path: Path, record: dict) -> None:
 
 
 def _demo() -> int:
+    import shutil
     import tempfile
     sample = (
         "# 演示交付物：骨科 AI 分诊说明（v0.1.0）\n\n"
@@ -440,17 +441,27 @@ def _demo() -> int:
         "人类监督：高风险决策须临床医生复核（human-in-the-loop）。\n"
         "贡献者关联：MedXpert (@stevenzhao07)。\n"
     )
-    with tempfile.NamedTemporaryFile("w", suffix=".md", delete=False, encoding="utf-8") as f:
-        f.write(sample)
-        path = Path(f.name)
+    # 样本须模拟「交付物所在的那个仓」：临时目录 + 交付物 + 本仓真实 LICENSE 副本。
+    # 修复前样本落在 %TEMP% 根部，同级天然无 LICENSE，license_present 门如实报缺（17/18 成因）。
+    tmpdir = Path(tempfile.mkdtemp(prefix="delivery_guard_demo_"))
+    path = tmpdir / "demo_artifact.md"
+    path.write_text(sample, encoding="utf-8")
+    repo_license = Path(__file__).resolve().parent.parent / "LICENSE"
+    if repo_license.is_file():
+        shutil.copyfile(repo_license, tmpdir / "LICENSE")  # 用本仓真实 LICENSE，不用占位串
     try:
         results, _, _ = run_gates(path)
         for r in results:
-            print(f"  [{'PASS' if r.passed else 'XX'}] {r.name}: {r.detail}")
-        print(f"\n[demo] 演示门禁: {sum(r.passed for r in results)}/{len(results)} 通过"
-              f"（演示样本干净，不写入台账）")
+            print(f"  [{'PASS' if r.passed else 'FAIL'}] {r.name}: {r.detail}")
+        _npass = sum(r.passed for r in results)
+        # S1（2026-10-30）：摘要行按结果生成——有失败时不得打印「干净」。
+        print(f"\n[demo] 演示门禁: {_npass}/{len(results)} 通过"
+              f"（{'演示样本干净，不写入台账' if _npass == len(results) else '演示样本存在未过门禁，见上方 FAIL 行'}）")
+        # S1（2026-10-30）：demo 与主路径同一退出码契约——有门禁失败必须非零，
+        # 否则把 --demo 放进 CI 的人会拿到一个永远绿的假门（SF-011 形态）。
+        return 0 if all(r.passed for r in results) else 1
     finally:
-        path.unlink()
+        shutil.rmtree(tmpdir, ignore_errors=True)
     return 0
 
 
@@ -561,6 +572,48 @@ def _selftest() -> int:
     _p = _sp.run([sys.executable, _script, "--__nonexistent_flag__"], capture_output=True, cwd=_root)
     if _p.returncode == 0:
         _fail.append("负对照失败：未知参数竟返回 0")
+    # 负对照（S1 退出码契约，2026-10-30）：门禁失败的交付物必须 exit 1，且 demo 不例外。
+    # 样本放在无 LICENSE 的临时目录 → license_present 必失败 → 主路径与 --demo 都不得返回 0。
+    _n += 1
+    import tempfile as _tf
+    import shutil as _shutil
+    _tmp = _tf.mkdtemp(prefix="dg_selftest_fail_")
+    try:
+        _art = _os.path.join(_tmp, "artifact.md")
+        with open(_art, "w", encoding="utf-8") as _f:
+            _f.write("# 负对照交付物 v0.1.0\n人类监督：高风险决策须临床医生复核。\n贡献者关联：MedXpert (@stevenzhao07)。\n")
+        _p = _sp.run([sys.executable, _script, _art], capture_output=True, cwd=_root)
+        if _p.returncode != 1:
+            _fail.append(f"负对照失败：门禁未过的交付物返回 rc={_p.returncode}，期望 1（阻断契约）")
+        _p = _sp.run([sys.executable, _script, "--demo"], capture_output=True, cwd=_root)
+        if _p.returncode != 0:
+            _fail.append(f"demo 契约失败：演示样本（含 LICENSE 副本）应全过返回 0，实际 rc={_p.returncode}")
+    finally:
+        _shutil.rmtree(_tmp, ignore_errors=True)
+    # 负对照（S1 变异防护，2026-10-30 红队席提出）：此前 4/4 自测对 S1 零覆盖力——
+    # 把 _demo 的退出码契约改回 return 0，自测仍全绿。故注入必败门后进程内调用
+    # _demo()，断言 rc==1：该变异一旦回归，此用例必红。
+    _n += 1
+    import io as _io
+    from contextlib import redirect_stdout as _rso
+    _orig_run_gates = run_gates
+
+    def _failing_run_gates(_p):
+        _rs, _log, _ctx = _orig_run_gates(_p)
+        _rs = list(_rs) + [GateResult(gate_id=99, name="selftest-injected-fail",
+                                      passed=False, detail="自测注入的必败门（S1 变异防护）")]
+        return _rs, _log, _ctx
+
+    globals()["run_gates"] = _failing_run_gates
+    try:
+        _buf = _io.StringIO()
+        with _rso(_buf):
+            _rc = _demo()
+    finally:
+        globals()["run_gates"] = _orig_run_gates
+    if _rc != 1:
+        _fail.append(f"S1 变异防护失败：注入必败门后 _demo() 返回 rc={_rc}，期望 1"
+                     f"（若 _demo 退出码契约被改回恒 0，此用例必须红）")
     for _x in _xfail:
         print("[selftest][xfail] " + _x)
     if _fail:
