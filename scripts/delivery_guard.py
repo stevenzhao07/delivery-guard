@@ -452,9 +452,12 @@ def _demo() -> int:
     try:
         results, _, _ = run_gates(path)
         for r in results:
-            print(f"  [{'PASS' if r.passed else 'XX'}] {r.name}: {r.detail}")
+            print(f"  [{'PASS' if r.passed else 'FAIL'}] {r.name}: {r.detail}")
         print(f"\n[demo] 演示门禁: {sum(r.passed for r in results)}/{len(results)} 通过"
               f"（演示样本干净，不写入台账）")
+        # S1（2026-10-30）：demo 与主路径同一退出码契约——有门禁失败必须非零，
+        # 否则把 --demo 放进 CI 的人会拿到一个永远绿的假门（SF-011 形态）。
+        return 0 if all(r.passed for r in results) else 1
     finally:
         shutil.rmtree(tmpdir, ignore_errors=True)
     return 0
@@ -567,6 +570,24 @@ def _selftest() -> int:
     _p = _sp.run([sys.executable, _script, "--__nonexistent_flag__"], capture_output=True, cwd=_root)
     if _p.returncode == 0:
         _fail.append("负对照失败：未知参数竟返回 0")
+    # 负对照（S1 退出码契约，2026-10-30）：门禁失败的交付物必须 exit 1，且 demo 不例外。
+    # 样本放在无 LICENSE 的临时目录 → license_present 必失败 → 主路径与 --demo 都不得返回 0。
+    _n += 1
+    import tempfile as _tf
+    import shutil as _shutil
+    _tmp = _tf.mkdtemp(prefix="dg_selftest_fail_")
+    try:
+        _art = _os.path.join(_tmp, "artifact.md")
+        with open(_art, "w", encoding="utf-8") as _f:
+            _f.write("# 负对照交付物 v0.1.0\n人类监督：高风险决策须临床医生复核。\n贡献者关联：MedXpert (@stevenzhao07)。\n")
+        _p = _sp.run([sys.executable, _script, _art], capture_output=True, cwd=_root)
+        if _p.returncode != 1:
+            _fail.append(f"负对照失败：门禁未过的交付物返回 rc={_p.returncode}，期望 1（阻断契约）")
+        _p = _sp.run([sys.executable, _script, "--demo"], capture_output=True, cwd=_root)
+        if _p.returncode != 0:
+            _fail.append(f"demo 契约失败：演示样本（含 LICENSE 副本）应全过返回 0，实际 rc={_p.returncode}")
+    finally:
+        _shutil.rmtree(_tmp, ignore_errors=True)
     for _x in _xfail:
         print("[selftest][xfail] " + _x)
     if _fail:
