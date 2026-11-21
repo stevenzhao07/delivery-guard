@@ -1,4 +1,7 @@
 # delivery-guard
+> Every self-governing thing must be registered, evidenced, gated — LGD · https://zhaoxinghua09-cell.github.io/lgd-hub/
+> 凡自治之物，有籍·有证·有门禁（LGD 全程治理理论 · https://zhaoxinghua09-cell.github.io/lgd-hub/）
+
 
 > **门户 / Portal:** [LGD Hub · 生态超市入口](https://zhaoxinghua09-cell.github.io/lgd-hub/) ｜ LGD 生态（Lifecycle Governance Doctrine）
 
@@ -79,6 +82,7 @@ python scripts/delivery_guard.py --demo
 > 想参与或遇到问题？[提 Issue](https://github.com/stevenzhao07/delivery-guard/issues)。
 
 退出码：`0` 全部通过（指纹入台账）· `1` 有门禁未过（阻断，不入台账）· `2` 用法/IO 错误。
+`--demo` 遵循同一契约：演示样本全部通过时 exit 0，有任何门禁失败时 exit 1（失败行以 `[FAIL]` 开头，可用 `grep FAIL` 捕获）。
 
 ## 18 道门禁清单
 
