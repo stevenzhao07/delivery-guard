@@ -114,7 +114,7 @@ python scripts/delivery_guard.py --demo
 ## 关联模块
 
 - [ai-model-passport](https://github.com/stevenzhao07/ai-model-passport) — AI 护照身份档案参考实现
-- [ai-a3-laws](https://github.com/stevenzhao07/ai-a3-laws) — A³ Laws 运行时约束库
+- ai-a3-laws（未建仓·计划中） — A³ Laws 运行时约束库
 - [samd-ra-toolkit](https://github.com/stevenzhao07/samd-ra-toolkit) — SaMD RA 工具包
 
 ## 许可
